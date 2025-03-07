@@ -23,6 +23,7 @@ import { LinearGradient } from "expo-linear-gradient"
 import { useTheme } from "~/context/ThemeContext"
 import { useAuth } from "~/context/AuthContext"
 import { useNavigation } from '@react-navigation/native'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 type Props = {
   navigation: NativeStackNavigationProp<any>
@@ -52,6 +53,28 @@ export default function MobileLoginScreen({ navigation }: Props) {
       duration: 800,
       useNativeDriver: true,
     }).start()
+
+    const loadLastCredentials = async () => {
+      try {
+        const lastUsername = await AsyncStorage.getItem('lastSignupUsername');
+        const lastEmail = await AsyncStorage.getItem('lastSignupEmail');
+        
+        if (lastUsername && lastEmail) {
+          setFormData(prev => ({
+            ...prev,
+            username: lastUsername,
+            email: lastEmail
+          }));
+          // Clear the stored credentials
+          await AsyncStorage.removeItem('lastSignupUsername');
+          await AsyncStorage.removeItem('lastSignupEmail');
+        }
+      } catch (error) {
+        console.error('Error loading last credentials:', error);
+      }
+    };
+
+    loadLastCredentials();
   }, [navigation, fadeAnim])
 
   const handleLogin = async () => {
@@ -67,11 +90,22 @@ export default function MobileLoginScreen({ navigation }: Props) {
 
     setIsLoading(true);
     try {
+      console.log('Login attempt:', {
+        username: formData.username,
+        email: formData.email,
+        hasPassword: !!formData.password
+      });
+      
       const result = await login(formData.username, formData.email, formData.password);
       
       if (result.error) {
         Alert.alert("Login Failed", result.error);
       } else {
+        console.log('User found:', {
+          success: true,
+          username: formData.username,
+          email: formData.email
+        });
         // Navigate to UserHome on successful login
         navigation.reset({
           index: 0,

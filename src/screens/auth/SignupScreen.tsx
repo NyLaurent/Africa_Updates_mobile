@@ -23,6 +23,7 @@ import { LinearGradient } from "expo-linear-gradient"
 import { useTheme } from "~/context/ThemeContext"
 import { useAuth } from "~/context/AuthContext"
 import { useNavigation } from '@react-navigation/native'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 type Props = {
   navigation: NativeStackNavigationProp<any>
